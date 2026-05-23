@@ -9,7 +9,7 @@ A Python-based AI workflow built for the Closira internship assignment. It handl
 ```
   ╔══════════════════════════════════════════╗
   ║         Bloom Aesthetics Clinic          ║
-  ║         AI Support Agent — Aria          ║
+  ║         AI Support Agent - Aria          ║
   ╚══════════════════════════════════════════╝
 
 Aria: Hi there! Welcome to Bloom Aesthetics Clinic - I'm Aria. How can I help you today?
@@ -70,7 +70,7 @@ bloom-ai-agent/
 
 ## Setup
 
-**Requirements:** Python 3.9+, an OpenAI API key
+**Requirements:** Python 3.9+, an OpenRouter API key
 
 ```bash
 # 1. Clone the repo
@@ -85,8 +85,9 @@ source venv/bin/activate      # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
 # 4. Add your API key
-cp .env.example .env
-# Open .env and replace 'your_api_key_here' with your actual key
+# Create a .env file in the project root
+# Inside .env:
+OPENROUTER_API_KEY=your_api_key_here
 
 # 5. Run
 python main.py
@@ -98,9 +99,9 @@ python main.py
 
 Type naturally to chat with Aria. A few things to know:
 
-- **`quit` / `bye` / `exit`** — ends the session and generates the summary
-- **`summary`** — same as above
-- **Ctrl+C** — graceful exit
+- **`quit` / `bye` / `exit`** - ends the session and generates the summary
+- **`summary`** - same as above
+- **Ctrl+C** - graceful exit
 
 The agent starts in **FAQ mode** and transitions to **qualification** naturally after a couple of exchanges (if the customer is willing). Escalation can happen at any point and is surfaced in the terminal with a red `🚨` indicator.
 
@@ -121,7 +122,7 @@ After every session, a full JSON log is saved to `logs/session_YYYYMMDD_HHMMSS.j
                │ no keyword hit
                ▼
   ┌─────────────────────────┐
-  │    OpenAI API Call      │  ← structured JSON response
+  │  OpenRouter API Call    │  ← structured JSON response
   │  (stage-aware prompt)   │    with error handling fallback
   └────────────┬────────────┘
                │
@@ -147,10 +148,10 @@ After every session, a full JSON log is saved to `logs/session_YYYYMMDD_HHMMSS.j
 
 **Key design choices:**
 
-- **Structured JSON output from the model** — every response is a JSON object. The `message` field is what the customer sees; the rest (escalate, confidence, sop_gap, etc.) drives application logic. This keeps the workflow predictable and easier to validate.
-- **Dynamic system prompt** — stage-specific instructions are injected fresh at every turn, so the model always knows exactly what it should be doing.
-- **Separate summariser prompt** — the conversation prompt and summary prompt are intentionally different. They have different jobs, and blending them would make both worse.
-- **Escalation as a safety net** — when the model can't answer two consecutive questions, it escalates rather than guessing. This is the most important hallucination guard.
+- **Structured JSON output from the model** - every response is a JSON object. The `message` field is what the customer sees; the rest (escalate, confidence, sop_gap, etc.) drives application logic. This keeps the workflow predictable and easier to validate.
+- **Dynamic system prompt** - stage-specific instructions are injected fresh at every turn, so the model always knows exactly what it should be doing.
+- **Separate summariser prompt** - the conversation prompt and summary prompt are intentionally different. They have different jobs, and blending them would make both worse.
+- **Escalation as a safety net** - when the model can't answer two consecutive questions, it escalates rather than guessing. This is the most important hallucination guard.
 
 ---
 
@@ -159,12 +160,12 @@ After every session, a full JSON log is saved to `logs/session_YYYYMMDD_HHMMSS.j
 The SOP (`sop.json`) covers:
 
 - **Business:** Bloom Aesthetics Clinic
-- **Hours:** Mon–Sat, 9am–7pm (closed Sunday)
+- **Hours:** Mon-Sat, 9am-7pm (closed Sunday)
 - **Services:** Botox (from £200), Dermal Fillers (from £250), Consultation (free)
 - **Booking:** Via WhatsApp or website. 24hr cancellation policy.
 - **Escalation triggers:** complaint, medical question, pricing negotiation, 2+ unanswered questions, explicit human request
 
-You can extend the SOP by editing `sop.json` — no code changes needed.
+You can extend the SOP by editing `sop.json` - no code changes needed.
 
 ---
 
@@ -172,12 +173,12 @@ You can extend the SOP by editing `sop.json` — no code changes needed.
 
 Six sample conversations in `test_transcripts/`, one per expected behaviour:
 
-1. `01_in_sop_question.md` — Botox price enquiry, answered from SOP
-2. `02_out_of_scope.md` — Question not in SOP, escalation after 2 gaps
-3. `03_escalation_trigger.md` — Complaint and pricing negotiation scenarios
-4. `04_lead_qualification.md` — Full 3-question qualification flow
-5. `05_conversation_summary.md` — End-of-session summary with all fields
-6. `06_realistic_messy_conversation.md` — Informal input, mid-chat medical keyword, keyword escalation
+1. `01_in_sop_question.md` - Botox price enquiry, answered from SOP
+2. `02_out_of_scope.md` - Question not in SOP, escalation after 2 gaps
+3. `03_escalation_trigger.md` - Complaint and pricing negotiation scenarios
+4. `04_lead_qualification.md` - Full 3-question qualification flow
+5. `05_conversation_summary.md` - End-of-session summary with all fields
+6. `06_realistic_messy_conversation.md` - Informal input, mid-chat medical keyword, keyword escalation
 
 ---
 
@@ -185,23 +186,23 @@ Six sample conversations in `test_transcripts/`, one per expected behaviour:
 
 **No orchestration framework.** This implementation intentionally avoids heavier tools like LangChain to keep the workflow transparent and easy to reason about. For a focused SMB support use case with four well-defined stages, a clean state machine is simpler and more debuggable than an abstraction layer on top of it.
 
-**Confidence is self-assessed.** The `confidence` field in the JSON response is the model's own self-assessment — not a calibrated probability. It's a useful signal, but shouldn't be treated as a precise measurement.
+**Confidence is self-assessed.** The `confidence` field in the JSON response is the model's own self-assessment - not a calibrated probability. It's a useful signal, but shouldn't be treated as a precise measurement.
 
 **JSON parsing has a fallback.** If the model produces malformed JSON (rare, but it can happen), the app strips markdown fences and tries to extract a JSON object. If all else fails, it returns a safe default response rather than crashing. The structured data for that turn is lost, but the conversation continues.
 
-**Stage transitions are model-driven.** The qualification stage depends on the model returning `"next_stage": "qualification"` when it offers and the customer accepts. In rare cases the model might not include this field even when appropriate — the stage would remain FAQ. A more robust production system would use a separate classifier for stage routing.
+**Stage transitions are model-driven.** The qualification stage depends on the model returning `"next_stage": "qualification"` when it offers and the customer accepts. In rare cases the model might not include this field even when appropriate - the stage would remain FAQ. A more robust production system would use a separate classifier for stage routing.
 
 **No memory across sessions.** Each conversation starts from scratch. A real deployment would pull customer history from a CRM before starting the prompt.
 
-**CLI only.** No frontend or webhook integration — this is a prototype demonstrating the AI logic layer. It could be wrapped in a WhatsApp or web handler without changing the core agent code.
+**CLI only.** No frontend or webhook integration - this is a prototype demonstrating the AI logic layer. It could be wrapped in a WhatsApp or web handler without changing the core agent code.
 
 ---
 
 ## Future Improvements
 
-- **WhatsApp / webhook integration** — the agent logic is already channel-agnostic; it just needs an inbound handler (Twilio or Meta's Cloud API) plugged in front of `agent.chat()`
-- **CRM integration** — pass customer history into the session context at startup so Aria knows if someone has visited before
-- **Multi-language support** — the SOP and tone instructions could be translated per-session based on the customer's detected language
+- **WhatsApp / webhook integration** - the agent logic is already channel-agnostic; it just needs an inbound handler plugged in front of `agent.chat()`
+- **CRM integration** - pass customer history into the session context at startup so Aria knows if someone has visited before
+- **Multi-language support** - the SOP and tone instructions could be translated per-session based on the customer's detected language
 
 ---
 
@@ -210,7 +211,7 @@ Six sample conversations in `test_transcripts/`, one per expected behaviour:
 The model is set in `config.py`:
 
 ```python
-MODEL = "gpt-4o-mini"
+MODEL = "deepseek/deepseek-chat-v3-0324:free"
 ```
 
-Swap this for any compatible OpenAI chat model if you'd like to experiment with different trade-offs between speed and quality.
+Swap this for any compatible OpenRouter model if you'd like to experiment with different trade-offs between speed and quality.
