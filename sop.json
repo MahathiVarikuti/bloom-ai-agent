@@ -1,0 +1,64 @@
+{
+  "business_name": "Bloom Aesthetics Clinic",
+  "hours": {
+    "days": "Monday to Saturday",
+    "open": "9:00 AM",
+    "close": "7:00 PM",
+    "closed_on": "Sunday"
+  },
+  "services": [
+    {
+      "name": "Botox",
+      "description": "Anti-wrinkle injections to smooth fine lines and wrinkles",
+      "price_from": 200,
+      "currency": "GBP",
+      "price_note": "Price varies depending on the number of areas treated"
+    },
+    {
+      "name": "Dermal Fillers",
+      "description": "Injectable fillers to restore volume, define contours, and enhance features",
+      "price_from": 250,
+      "currency": "GBP",
+      "price_note": "Price varies depending on the type of filler and amount used"
+    },
+    {
+      "name": "Consultation",
+      "description": "A one-to-one session with a qualified practitioner to discuss treatment options and suitability",
+      "price": 0,
+      "currency": "GBP",
+      "price_note": "Completely free of charge, no obligation"
+    }
+  ],
+  "booking": {
+    "channels": ["WhatsApp", "website"],
+    "cancellation_policy": "24 hours notice is required for all cancellations",
+    "deposit_required": false,
+    "walk_ins_accepted": false
+  },
+  "escalation_triggers": [
+    "complaint or dissatisfaction",
+    "medical question about safety, risks, or side effects",
+    "pricing negotiation or dispute",
+    "more than 2 consecutive unanswered questions",
+    "explicit request to speak to a human or team member",
+    "anger or distress"
+  ],
+  "faqs": [
+    {
+      "question": "Are consultations free?",
+      "answer": "Yes, consultations are completely free and carry no obligation."
+    },
+    {
+      "question": "How do I book?",
+      "answer": "You can book via WhatsApp or through our website. Please note that we require 24 hours notice for cancellations."
+    },
+    {
+      "question": "What are your opening hours?",
+      "answer": "We're open Monday to Saturday, 9 AM to 7 PM. We're closed on Sundays."
+    },
+    {
+      "question": "Do you accept walk-ins?",
+      "answer": "We don't accept walk-ins — all appointments need to be booked in advance via WhatsApp or our website."
+    }
+  ]
+}
