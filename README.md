@@ -1,4 +1,4 @@
-# Bloom Aesthetics — AI Customer Support Agent
+# Bloom Aesthetics - AI Customer Support Agent
 
 A Python-based AI workflow built for the Closira internship assignment. It handles inbound customer conversations for a fictional aesthetics clinic end-to-end: answering FAQs from an SOP, qualifying leads, detecting when to escalate, and producing a structured session summary.
 
@@ -12,7 +12,7 @@ A Python-based AI workflow built for the Closira internship assignment. It handl
   ║         AI Support Agent — Aria          ║
   ╚══════════════════════════════════════════╝
 
-Aria: Hi there! Welcome to Bloom Aesthetics Clinic — I'm Aria. How can I help you today?
+Aria: Hi there! Welcome to Bloom Aesthetics Clinic - I'm Aria. How can I help you today?
 
 You: What are your Botox prices?
 
@@ -63,14 +63,14 @@ bloom-ai-agent/
 │   ├── 03_escalation_trigger.md
 │   ├── 04_lead_qualification.md
 │   └── 05_conversation_summary.md
-└── logs/                 # Auto-created — session JSON files saved here
+└── logs/                 # Auto-created - session JSON files saved here
 ```
 
 ---
 
 ## Setup
 
-**Requirements:** Python 3.9+, an Anthropic API key
+**Requirements:** Python 3.9+, an OpenAI API key
 
 ```bash
 # 1. Clone the repo
@@ -121,7 +121,7 @@ After every session, a full JSON log is saved to `logs/session_YYYYMMDD_HHMMSS.j
                │ no keyword hit
                ▼
   ┌─────────────────────────┐
-  │    Claude API Call      │  ← structured JSON response
+  │    OpenAI API Call      │  ← structured JSON response
   │  (stage-aware prompt)   │    with error handling fallback
   └────────────┬────────────┘
                │
@@ -147,7 +147,7 @@ After every session, a full JSON log is saved to `logs/session_YYYYMMDD_HHMMSS.j
 
 **Key design choices:**
 
-- **Structured JSON output from Claude** — every response is a JSON object. The `message` field is what the customer sees; the rest (escalate, confidence, sop_gap, etc.) drives application logic. This keeps the workflow predictable and easier to validate.
+- **Structured JSON output from the model** — every response is a JSON object. The `message` field is what the customer sees; the rest (escalate, confidence, sop_gap, etc.) drives application logic. This keeps the workflow predictable and easier to validate.
 - **Dynamic system prompt** — stage-specific instructions are injected fresh at every turn, so the model always knows exactly what it should be doing.
 - **Separate summariser prompt** — the conversation prompt and summary prompt are intentionally different. They have different jobs, and blending them would make both worse.
 - **Escalation as a safety net** — when the model can't answer two consecutive questions, it escalates rather than guessing. This is the most important hallucination guard.
@@ -187,7 +187,7 @@ Six sample conversations in `test_transcripts/`, one per expected behaviour:
 
 **Confidence is self-assessed.** The `confidence` field in the JSON response is the model's own self-assessment — not a calibrated probability. It's a useful signal, but shouldn't be treated as a precise measurement.
 
-**JSON parsing has a fallback.** If Claude produces malformed JSON (rare, but it can happen), the app strips markdown fences and tries to extract a JSON object. If all else fails, it returns a safe default response rather than crashing. The structured data for that turn is lost, but the conversation continues.
+**JSON parsing has a fallback.** If the model produces malformed JSON (rare, but it can happen), the app strips markdown fences and tries to extract a JSON object. If all else fails, it returns a safe default response rather than crashing. The structured data for that turn is lost, but the conversation continues.
 
 **Stage transitions are model-driven.** The qualification stage depends on the model returning `"next_stage": "qualification"` when it offers and the customer accepts. In rare cases the model might not include this field even when appropriate — the stage would remain FAQ. A more robust production system would use a separate classifier for stage routing.
 
@@ -210,7 +210,7 @@ Six sample conversations in `test_transcripts/`, one per expected behaviour:
 The model is set in `config.py`:
 
 ```python
-MODEL = "claude-3-5-sonnet-20241022"
+MODEL = "gpt-4o-mini"
 ```
 
-Swap this for any model in the Anthropic API. `claude-3-haiku-20240307` is faster and cheaper if you're running many tests.
+Swap this for any compatible OpenAI chat model if you'd like to experiment with different trade-offs between speed and quality.
